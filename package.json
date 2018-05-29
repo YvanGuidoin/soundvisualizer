@@ -44,7 +44,7 @@
     "build": "rollup -c",
     "build:watch": "rollup -c -w",
     "start": "webpack-dev-server --hot",
-    "build:doc": "webpack -p"
+    "build:doc": "webpack --env.production"
   },
   "author": "",
   "license": "ISC"
