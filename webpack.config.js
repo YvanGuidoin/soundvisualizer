@@ -2,7 +2,6 @@ const path = require("path");
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 
 function getPlugins(isProd, isHot) {
@@ -11,8 +10,8 @@ function getPlugins(isProd, isHot) {
     new webpack.DefinePlugin({
       "process.env": {
         NODE_ENV: JSON.stringify(isProd ? "production" : "development"),
-        BROWSER: true
-      }
+        BROWSER: true,
+      },
     }),
     new HtmlWebpackPlugin({
       template: "public/index.html",
@@ -24,13 +23,9 @@ function getPlugins(isProd, isHot) {
         preserveLineBreaks: false,
         html5: true,
         removeComments: true,
-        collapseWhitespace: true
-      }
+        collapseWhitespace: true,
+      },
     }),
-    new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css"
-    })
   ];
   if (isHot) {
     commonsPlugins.push(new webpack.HotModuleReplacementPlugin());
@@ -49,7 +44,7 @@ module.exports = function(env) {
     chunkModules: false,
     chunkOrigins: false,
     optimizationBailout: true,
-    source: false
+    source: false,
   };
 
   return {
@@ -63,7 +58,7 @@ module.exports = function(env) {
       filename: isProd ? "[chunkhash].js" : "[name].bundle.js",
       chunkFilename: isProd ? "[chunkhash].chunk.js" : "[name].chunk.js",
       pathinfo: !isProd,
-      jsonpScriptType: "module"
+      jsonpScriptType: "module",
     },
     devServer: {
       contentBase: path.resolve(__dirname, "docs"),
@@ -74,10 +69,10 @@ module.exports = function(env) {
       open: false,
       inline: true,
       overlay: true,
-      port: 9000
+      port: 9000,
     },
     performance: {
-      hints: isProd ? "warning" : false
+      hints: isProd ? "warning" : false,
     },
     optimization: {
       splitChunks: { chunks: "all", cacheGroups: {} },
@@ -86,20 +81,20 @@ module.exports = function(env) {
         new UglifyJsPlugin({
           uglifyOptions: {
             ecma: 7,
-            compress: { inline: false }
+            compress: { inline: false },
           },
           cache: false,
           parallel: true,
-          sourceMap: false
-        })
+          sourceMap: false,
+        }),
       ],
       runtimeChunk: false,
-      concatenateModules: isProd
+      concatenateModules: isProd,
     },
     resolve: {
       extensions: [".tsx", ".ts", ".jsx", ".js"],
       mainFields: ["module", "browser", "main"],
-      modules: [path.resolve(__dirname, "node_modules")]
+      modules: [path.resolve(__dirname, "node_modules")],
     },
     target: "web",
     module: {
@@ -110,43 +105,27 @@ module.exports = function(env) {
             {
               loader: "babel-loader",
               options: {
-                cacheDirectory: !isProd
-              }
+                cacheDirectory: !isProd,
+              },
             },
-            "ts-loader"
+            "ts-loader",
           ],
           include: /public/,
-          exclude: /node_modules/
+          exclude: /node_modules/,
         },
         {
           test: /\.(js|jsx)$/,
           use: {
             loader: "babel-loader",
             options: {
-              cacheDirectory: !isProd
-            }
+              cacheDirectory: !isProd,
+            },
           },
           include: /public/,
-          exclude: /node_modules/
+          exclude: /node_modules/,
         },
-        {
-          test: /\.css$/,
-          use: [
-            isHot
-              ? { loader: "style-loader", options: { hmr: true } }
-              : MiniCssExtractPlugin.loader,
-            {
-              loader: "css-loader",
-              options: { minimize: isProd, importLoaders: 0 }
-            }
-          ]
-        },
-        {
-          test: /\.(jpe?g|png|gif|ogg)$/i,
-          loader: "file-loader?name=/assets/[name].[ext]"
-        }
-      ]
+      ],
     },
-    plugins: pluginsToUse
+    plugins: pluginsToUse,
   };
 };

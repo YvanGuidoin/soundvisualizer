@@ -4,8 +4,16 @@ export interface SoundVisualizerProps {
     soundStream: MediaStream;
     fftSize: number;
     forceUpdater?: number;
+    width: number;
+    height: number;
+    ratio: number;
+    lineWidth?: number;
 }
-declare class SoundVisualizer extends React.Component<SoundVisualizerProps> {
+export interface SoundVisualizerState {
+    circleRadius: number;
+    maxBarSize: number;
+}
+declare class SoundVisualizer extends React.Component<SoundVisualizerProps, SoundVisualizerState> {
     canvas: React.RefObject<HTMLCanvasElement>;
     spectrum: Uint8Array;
     audioCtx?: AudioContext;
@@ -15,17 +23,17 @@ declare class SoundVisualizer extends React.Component<SoundVisualizerProps> {
         y: number;
         angle: number;
     }>;
-    state: {
-        logoLoaded: boolean;
-    };
     constructor(props: SoundVisualizerProps);
     componentDidMount(): void;
-    private static distributeAngles(me, total);
-    private drawLogo(canvasCtx, percentage);
-    draw(): void;
-    componentWillReceiveProps(newProps: SoundVisualizerProps): void;
+    static getDerivedStateFromProps(nextProps: SoundVisualizerProps): SoundVisualizerState;
+    componentDidUpdate(_prevProps: SoundVisualizerProps, _prevState: SoundVisualizerState): void;
     componentWillUnmount(): void;
+    private static distributeAngles(me, total);
+    private static getRadiusFromProps(props);
+    private static getMaxBarSize(props);
     private processSound(stream);
+    draw(): void;
+    private drawLogo(canvasCtx, percentage);
     render(): JSX.Element;
 }
 export default SoundVisualizer;

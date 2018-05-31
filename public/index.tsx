@@ -5,12 +5,12 @@ import WebRTCTestPage from "./WebRTCTestPage";
 
 const pageStyle: React.CSSProperties = {
   width: "100vw",
-  height: "100vh"
+  height: "100vh",
 };
 
 ReactDOM.render(
   <div style={pageStyle}>
     <WebRTCTestPage />
   </div>,
-  document.getElementById("root")
+  document.getElementById("root"),
 );

@@ -1,38 +1,42 @@
 import React from "react";
 
 import SoundVisualizer from "..";
-import PromiseWaiter from "./PromiseWaiter";
 
 export interface DeviceList {
-  video: Array<MediaDeviceInfo>;
   audio: Array<MediaDeviceInfo>;
 }
 
+function PromiseWaiter(time: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(), time);
+  });
+}
 const DEFAULT_CONSTRAINTS: MediaStreamConstraints = {
   audio: true,
-  video: {
-    width: { min: 640, ideal: 1280, max: 1920 },
-    height: { min: 480, ideal: 720, max: 1080 }
-  }
 };
 
 const gridStyle: React.CSSProperties = {
   display: "grid",
   justifyItems: "center",
-  gridGap: "1rem"
+  gridGap: "1rem",
+  padding: "1rem",
+};
+const canvasStyle: React.CSSProperties = {
+  backgroundColor: "white",
 };
 
 class WebRTCTestPage extends React.Component<{}> {
   state: {
     devices?: DeviceList;
     selectedMic?: string;
-    selectedCam?: string;
-    displayTestCam: boolean;
     displayTestAudio: boolean;
     audioStreamForceUpdate: number;
+    width: number;
+    height: number;
+    ratio: number;
+    fftSize: number;
+    lineWidth: number;
   };
-  testVideo?: React.RefObject<HTMLVideoElement>;
-  testStreamVideo?: MediaStream;
   testStreamAudio?: MediaStream;
 
   constructor(props: {}) {
@@ -40,16 +44,15 @@ class WebRTCTestPage extends React.Component<{}> {
     this.state = {
       devices: null,
       selectedMic: null,
-      selectedCam: null,
-      displayTestCam: false,
       displayTestAudio: false,
-      audioStreamForceUpdate: 1
+      audioStreamForceUpdate: 1,
+      width: 400,
+      height: 400,
+      ratio: 0.5,
+      fftSize: 8,
+      lineWidth: 1.2,
     };
-    this.testVideo = React.createRef();
-    this.testStreamVideo = null;
-    this.changeConf = this.changeConf.bind(this);
     this.createDevices = this.createDevices.bind(this);
-    this.changeTestVideoSource = this.changeTestVideoSource.bind(this);
     this.changeTestAudioSource = this.changeTestAudioSource.bind(this);
   }
 
@@ -58,10 +61,7 @@ class WebRTCTestPage extends React.Component<{}> {
   }
 
   componentWillUnmount() {
-    if (this.testStreamVideo)
-      this.testStreamVideo.getTracks().forEach(t => t.stop());
-    if (this.testStreamAudio)
-      this.testStreamAudio.getTracks().forEach(t => t.stop());
+    if (this.testStreamAudio) this.testStreamAudio.getTracks().forEach(t => t.stop());
   }
 
   private async createDevices() {
@@ -71,11 +71,9 @@ class WebRTCTestPage extends React.Component<{}> {
         stream = await navigator.mediaDevices.getUserMedia(DEFAULT_CONSTRAINTS);
         const d = await navigator.mediaDevices.enumerateDevices();
         const devices = {
-          video: d.filter(i => i.kind === "videoinput"),
-          audio: d.filter(i => i.kind === "audioinput")
+          audio: d.filter(i => i.kind === "audioinput"),
         };
         const tracks = stream.getTracks();
-        // audio
         const audioTrack = tracks.find(t => t.kind === "audio");
         const fromAudio = devices.audio.find(v => v.label === audioTrack.label);
         const selectedMic = fromAudio
@@ -83,21 +81,12 @@ class WebRTCTestPage extends React.Component<{}> {
           : devices.audio.length > 0
             ? devices.audio[0].deviceId
             : null;
-        // video
-        const videoTrack = tracks.find(t => t.kind === "video");
-        const fromVideo = devices.video.find(v => v.label === videoTrack.label);
-        const selectedCam = fromVideo
-          ? fromVideo.deviceId
-          : devices.video.length > 0
-            ? devices.video[0].deviceId
-            : null;
         this.setState(
           {
             devices,
             selectedMic,
-            selectedCam
           },
-          () => this.changeConf()
+          () => this.changeTestAudioSource(),
         );
       } catch (err) {
         console.error(err);
@@ -107,107 +96,105 @@ class WebRTCTestPage extends React.Component<{}> {
     }
   }
 
-  private changeConf() {
-    const { selectedCam, selectedMic } = this.state;
-    this.changeTestAudioSource(selectedMic);
-    this.changeTestVideoSource(selectedCam);
-  }
-
-  private async changeTestVideoSource(newDeviceID: string) {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        deviceId: newDeviceID,
-        ...(DEFAULT_CONSTRAINTS.video as MediaTrackConstraints)
-      },
-      audio: false
-    });
-    await PromiseWaiter(500); // to avoid flashing cam
-    if (this.testStreamVideo)
-      this.testStreamVideo.getTracks().forEach(t => t.stop());
-    this.testStreamVideo = stream;
-    this.testVideo.current.srcObject = stream;
-    this.testVideo.current.play();
-    this.setState({ displayTestCam: true });
-  }
-
-  private async changeTestAudioSource(newDeviceID: string) {
+  private async changeTestAudioSource() {
+    const { selectedMic } = this.state;
     const stream = await navigator.mediaDevices.getUserMedia({
       video: false,
       audio: {
-        deviceId: newDeviceID,
+        deviceId: selectedMic,
         // sampleSize: { ideal: 8 },
-        sampleRate: { ideal: 8000 }
-      }
+        sampleRate: { ideal: 8000 },
+      },
     });
-    await PromiseWaiter(500); // to avoid flashing cam
-    if (this.testStreamAudio)
-      this.testStreamAudio.getTracks().forEach(t => t.stop());
+    await PromiseWaiter(500); // to avoid sound noise on mic change
+    if (this.testStreamAudio) this.testStreamAudio.getTracks().forEach(t => t.stop());
     this.testStreamAudio = stream;
     this.setState({
       displayTestAudio: true,
-      audioStreamForceUpdate: this.state.audioStreamForceUpdate + 1
     });
   }
 
   render() {
-    const {
-      devices,
-      selectedCam,
-      selectedMic,
-      displayTestAudio,
-      displayTestCam
-    } = this.state;
+    const { devices, selectedMic, displayTestAudio, width, height, ratio, lineWidth } = this.state;
     return (
       <div style={gridStyle}>
         <label>
-          {devices &&
-            devices.video && (
-              <select
-                value={selectedCam}
-                onChange={m =>
-                  this.setState({ selectedCam: m.target.value }, () =>
-                    this.changeConf()
-                  )
-                }
-              >
-                {devices.video.map(m => (
-                  <option key={m.deviceId} value={m.deviceId}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            )}
+          Microphone:
+          <select
+            value={selectedMic || ""}
+            onChange={m => this.setState({ selectedMic: m.target.value }, () => this.changeTestAudioSource())}>
+            {devices &&
+              devices.audio &&
+              devices.audio.map(m => (
+                <option key={m.deviceId} value={m.deviceId}>
+                  {m.label}
+                </option>
+              ))}
+          </select>
         </label>
-        <video
-          ref={this.testVideo}
-          style={!displayTestCam ? { height: 0 } : { maxHeight: "30vh" }}
-          muted
-        />
         <label>
-          {devices &&
-            devices.audio && (
-              <select
-                value={selectedMic}
-                onChange={m =>
-                  this.setState({ selectedMic: m.target.value }, () =>
-                    this.changeConf()
-                  )
-                }
-              >
-                {devices.audio.map(m => (
-                  <option key={m.deviceId} value={m.deviceId}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            )}
+          Width:
+          <input
+            type="number"
+            value={this.state.width}
+            min={1}
+            max={1000}
+            onChange={e => this.setState({ width: Number.parseInt(e.target.value) })}
+          />
         </label>
-        <div>
+        <label>
+          Height:
+          <input
+            type="number"
+            value={this.state.height}
+            min={1}
+            max={1000}
+            onChange={e => this.setState({ height: Number.parseInt(e.target.value) })}
+          />
+        </label>
+        <label>
+          Ratio:
+          <input
+            type="range"
+            value={this.state.ratio}
+            step={0.01}
+            min={0}
+            max={1}
+            onChange={e => this.setState({ ratio: Number.parseFloat(e.target.value) })}
+          />
+        </label>
+        <label>
+          FFT Size:
+          <input
+            type="range"
+            value={this.state.fftSize}
+            step={1}
+            min={4}
+            max={14}
+            onChange={e => this.setState({ fftSize: Number.parseInt(e.target.value) })}
+          />
+        </label>
+        <label>
+          Line Width:
+          <input
+            type="range"
+            value={this.state.lineWidth}
+            step={0.1}
+            min={0.1}
+            max={10}
+            onChange={e => this.setState({ lineWidth: Number.parseFloat(e.target.value) })}
+          />
+        </label>
+        <div style={canvasStyle}>
           {displayTestAudio && (
             <SoundVisualizer
               soundStream={this.testStreamAudio}
-              fftSize={512}
-              forceUpdater={this.state.audioStreamForceUpdate}
+              fftSize={Math.pow(2, this.state.fftSize)}
+              forceUpdater={++this.state.audioStreamForceUpdate}
+              width={width}
+              height={height}
+              ratio={ratio}
+              lineWidth={lineWidth}
             />
           )}
         </div>
