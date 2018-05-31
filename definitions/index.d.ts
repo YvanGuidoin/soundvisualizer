@@ -20,7 +20,7 @@ declare class SoundVisualizer extends React.Component<SoundVisualizerProps> {
     };
     constructor(props: SoundVisualizerProps);
     componentDidMount(): void;
-    private distributeAngles(me, total);
+    private static distributeAngles(me, total);
     private drawLogo(canvasCtx, percentage);
     draw(): void;
     componentWillReceiveProps(newProps: SoundVisualizerProps): void;

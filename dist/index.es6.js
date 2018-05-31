@@ -27,7 +27,7 @@ class SoundVisualizer extends React.Component {
     requestAnimationFrame(this.draw);
   }
 
-  distributeAngles(me, total) {
+  static distributeAngles(me, total) {
     return me / total * 2 * Math.PI + Math.PI / 3;
   }
 
@@ -153,7 +153,7 @@ class SoundVisualizer extends React.Component {
   processSound(stream) {
     const particlesNumber = this.analyser.frequencyBinCount;
     this.particles = Array(particlesNumber).fill({}).map((_v, i) => {
-      const angle = this.distributeAngles(i, particlesNumber / 2);
+      const angle = SoundVisualizer.distributeAngles(i, particlesNumber / 2);
       return {
         x: CANVAS_WIDTH / 2 + Math.cos(angle) * RADIUS,
         y: CANVAS_HEIGHT / 2 + Math.sin(angle) * RADIUS,

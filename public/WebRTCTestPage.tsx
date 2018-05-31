@@ -16,6 +16,12 @@ const DEFAULT_CONSTRAINTS: MediaStreamConstraints = {
   }
 };
 
+const gridStyle: React.CSSProperties = {
+  display: "grid",
+  justifyItems: "center",
+  gridGap: "1rem"
+};
+
 class WebRTCTestPage extends React.Component<{}> {
   state: {
     devices?: DeviceList;
@@ -152,60 +158,58 @@ class WebRTCTestPage extends React.Component<{}> {
       displayTestCam
     } = this.state;
     return (
-      <div>
-        <div>
+      <div style={gridStyle}>
+        <label>
           {devices &&
             devices.video && (
-              <label>
-                <select
-                  value={selectedCam}
-                  onChange={m =>
-                    this.setState({ selectedCam: m.target.value }, () =>
-                      this.changeConf()
-                    )
-                  }
-                >
-                  {devices.video.map(m => (
-                    <option key={m.deviceId} value={m.deviceId}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <select
+                value={selectedCam}
+                onChange={m =>
+                  this.setState({ selectedCam: m.target.value }, () =>
+                    this.changeConf()
+                  )
+                }
+              >
+                {devices.video.map(m => (
+                  <option key={m.deviceId} value={m.deviceId}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
             )}
-          <video
-            ref={this.testVideo}
-            style={!displayTestCam ? { height: 0 } : {}}
-            muted
-          />
+        </label>
+        <video
+          ref={this.testVideo}
+          style={!displayTestCam ? { height: 0 } : { maxHeight: "30vh" }}
+          muted
+        />
+        <label>
           {devices &&
             devices.audio && (
-              <label>
-                <select
-                  value={selectedMic}
-                  onChange={m =>
-                    this.setState({ selectedMic: m.target.value }, () =>
-                      this.changeConf()
-                    )
-                  }
-                >
-                  {devices.audio.map(m => (
-                    <option key={m.deviceId} value={m.deviceId}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <select
+                value={selectedMic}
+                onChange={m =>
+                  this.setState({ selectedMic: m.target.value }, () =>
+                    this.changeConf()
+                  )
+                }
+              >
+                {devices.audio.map(m => (
+                  <option key={m.deviceId} value={m.deviceId}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
             )}
-          <div>
-            {displayTestAudio && (
-              <SoundVisualizer
-                soundStream={this.testStreamAudio}
-                fftSize={512}
-                forceUpdater={this.state.audioStreamForceUpdate}
-              />
-            )}
-          </div>
+        </label>
+        <div>
+          {displayTestAudio && (
+            <SoundVisualizer
+              soundStream={this.testStreamAudio}
+              fftSize={512}
+              forceUpdater={this.state.audioStreamForceUpdate}
+            />
+          )}
         </div>
       </div>
     );
