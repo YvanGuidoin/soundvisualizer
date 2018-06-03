@@ -17,7 +17,7 @@
     "@babel/core": "^7.0.0-beta.49",
     "@babel/preset-env": "^7.0.0-beta.49",
     "@babel/preset-react": "^7.0.0-beta.49",
-    "@types/react": "^16.3.14",
+    "@types/react": "^16.3.16",
     "@types/react-dom": "^16.0.5",
     "babel-loader": "^7.1.4",
     "babel-preset-minify": "^0.4.3",
@@ -31,11 +31,11 @@
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-typescript2": "^0.14.0",
-    "ts-loader": "^4.3.0",
-    "typescript": "^2.8.4",
+    "ts-loader": "^4.3.1",
+    "typescript": "^2.9.1",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "webpack": "^4.10.2",
-    "webpack-cli": "^2.1.4",
+    "webpack-cli": "^2.1.5",
     "webpack-dev-server": "^3.1.4"
   },
   "scripts": {

@@ -2,3 +2,5 @@ example/
 src/
 rollup.config.js
 tsconfig.json
+public/
+tsconfig.json

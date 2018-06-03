@@ -49,6 +49,7 @@ class SoundVisualizer extends React.Component<SoundVisualizerProps, SoundVisuali
   }
   componentDidUpdate(_prevProps: SoundVisualizerProps, _prevState: SoundVisualizerState) {
     this.analyser.fftSize = this.props.fftSize;
+    this.spectrum = new Uint8Array(this.props.fftSize / 2);
     this.processSound(this.props.soundStream);
   }
   componentWillUnmount() {
@@ -68,13 +69,13 @@ class SoundVisualizer extends React.Component<SoundVisualizerProps, SoundVisuali
   }
 
   private processSound(stream: MediaStream) {
-    const { width, height } = this.props;
+    const { width, height, fftSize } = this.props;
     const { circleRadius } = this.state;
-    const particlesNumber = this.analyser.frequencyBinCount;
+    const particlesNumber = fftSize / 2;
     this.particles = Array(particlesNumber)
       .fill({})
       .map((_v, i) => {
-        const angle = SoundVisualizer.distributeAngles(i, particlesNumber / 2);
+        const angle = SoundVisualizer.distributeAngles(i, particlesNumber);
         return {
           x: width / 2 + Math.cos(angle) * circleRadius,
           y: height / 2 + Math.sin(angle) * circleRadius,
@@ -86,17 +87,16 @@ class SoundVisualizer extends React.Component<SoundVisualizerProps, SoundVisuali
   }
 
   draw() {
-    const { width, height, lineWidth } = this.props;
+    const { width, height, lineWidth, fftSize } = this.props;
     const { maxBarSize, circleRadius } = this.state;
     if (this.analyser && this.analyser.numberOfInputs > 0) {
       this.analyser.getByteFrequencyData(this.spectrum);
-      const bufferLength = this.analyser.frequencyBinCount;
+      const bufferLength = fftSize / 2;
       const canvasCtx = this.canvas.current.getContext("2d");
       canvasCtx.clearRect(0, 0, width, height);
       canvasCtx.fillStyle = "#ff7f27";
       canvasCtx.strokeStyle = "#ff7f27";
       canvasCtx.lineWidth = lineWidth || 1;
-
       /*         drawing         */
       let barHeight,
         x2,
@@ -104,7 +104,7 @@ class SoundVisualizer extends React.Component<SoundVisualizerProps, SoundVisuali
         overallVolumeSum = 0;
       // loop on each frequency
       for (var i = 0; i < bufferLength; i++) {
-        overallVolumeSum += this.spectrum[i] * this.spectrum[i];
+        overallVolumeSum += this.spectrum[i];
         barHeight = this.spectrum[i] / 256 * maxBarSize;
         const p = this.particles[i];
         x2 = width / 2 + Math.cos(p.angle) * (barHeight + circleRadius);
@@ -116,7 +116,7 @@ class SoundVisualizer extends React.Component<SoundVisualizerProps, SoundVisuali
         canvasCtx.closePath();
       }
       overallVolumeSum /= bufferLength;
-      overallVolumeSum = Math.sqrt(overallVolumeSum);
+      // overallVolumeSum = Math.sqrt(overallVolumeSum);
       overallVolumeSum /= 256;
       this.drawLogo(canvasCtx, overallVolumeSum);
     }

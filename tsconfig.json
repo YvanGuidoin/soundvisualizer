@@ -12,8 +12,8 @@
     "sourceMap": false,
     "strict": false,
     "allowSyntheticDefaultImports": true,
-    "target": "es2016",
-    "lib": ["es2016", "dom", "es2017"],
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
     "declaration": true,
     "declarationDir": "definitions/",
     "moduleResolution": "node"

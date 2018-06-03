@@ -15,7 +15,9 @@ class SoundVisualizer extends React.Component {
   }
 
   componentDidMount() {
-    const fftSize = this.props.fftSize;
+    const {
+      fftSize
+    } = this.props;
     this.analyser = this.audioCtx.createAnalyser();
     this.analyser.fftSize = fftSize;
     this.analyser.smoothingTimeConstant = 0.6;
@@ -32,6 +34,7 @@ class SoundVisualizer extends React.Component {
 
   componentDidUpdate(_prevProps, _prevState) {
     this.analyser.fftSize = this.props.fftSize;
+    this.spectrum = new Uint8Array(this.props.fftSize / 2);
     this.processSound(this.props.soundStream);
   }
 
@@ -55,13 +58,17 @@ class SoundVisualizer extends React.Component {
   }
 
   processSound(stream) {
-    const _this$props = this.props,
-          width = _this$props.width,
-          height = _this$props.height;
-    const circleRadius = this.state.circleRadius;
-    const particlesNumber = this.analyser.frequencyBinCount;
+    const {
+      width,
+      height,
+      fftSize
+    } = this.props;
+    const {
+      circleRadius
+    } = this.state;
+    const particlesNumber = fftSize / 2;
     this.particles = Array(particlesNumber).fill({}).map((_v, i) => {
-      const angle = SoundVisualizer.distributeAngles(i, particlesNumber / 2);
+      const angle = SoundVisualizer.distributeAngles(i, particlesNumber);
       return {
         x: width / 2 + Math.cos(angle) * circleRadius,
         y: height / 2 + Math.sin(angle) * circleRadius,
@@ -73,17 +80,20 @@ class SoundVisualizer extends React.Component {
   }
 
   draw() {
-    const _this$props2 = this.props,
-          width = _this$props2.width,
-          height = _this$props2.height,
-          lineWidth = _this$props2.lineWidth;
-    const _this$state = this.state,
-          maxBarSize = _this$state.maxBarSize,
-          circleRadius = _this$state.circleRadius;
+    const {
+      width,
+      height,
+      lineWidth,
+      fftSize
+    } = this.props;
+    const {
+      maxBarSize,
+      circleRadius
+    } = this.state;
 
     if (this.analyser && this.analyser.numberOfInputs > 0) {
       this.analyser.getByteFrequencyData(this.spectrum);
-      const bufferLength = this.analyser.frequencyBinCount;
+      const bufferLength = fftSize / 2;
       const canvasCtx = this.canvas.current.getContext("2d");
       canvasCtx.clearRect(0, 0, width, height);
       canvasCtx.fillStyle = "#ff7f27";
@@ -97,7 +107,7 @@ class SoundVisualizer extends React.Component {
           overallVolumeSum = 0; // loop on each frequency
 
       for (var i = 0; i < bufferLength; i++) {
-        overallVolumeSum += this.spectrum[i] * this.spectrum[i];
+        overallVolumeSum += this.spectrum[i];
         barHeight = this.spectrum[i] / 256 * maxBarSize;
         const p = this.particles[i];
         x2 = width / 2 + Math.cos(p.angle) * (barHeight + circleRadius);
@@ -109,8 +119,8 @@ class SoundVisualizer extends React.Component {
         canvasCtx.closePath();
       }
 
-      overallVolumeSum /= bufferLength;
-      overallVolumeSum = Math.sqrt(overallVolumeSum);
+      overallVolumeSum /= bufferLength; // overallVolumeSum = Math.sqrt(overallVolumeSum);
+
       overallVolumeSum /= 256;
       this.drawLogo(canvasCtx, overallVolumeSum);
     }
@@ -119,10 +129,13 @@ class SoundVisualizer extends React.Component {
   }
 
   drawLogo(canvasCtx, percentage) {
-    const _this$props3 = this.props,
-          width = _this$props3.width,
-          height = _this$props3.height;
-    const circleRadius = this.state.circleRadius;
+    const {
+      width,
+      height
+    } = this.props;
+    const {
+      circleRadius
+    } = this.state;
     const midX = width / 2;
     const midY = height / 2;
     const smallCircleRadius = circleRadius / 3;

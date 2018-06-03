@@ -169,8 +169,8 @@ class WebRTCTestPage extends React.Component<{}> {
             type="range"
             value={this.state.fftSize}
             step={1}
-            min={4}
-            max={14}
+            min={5}
+            max={15}
             onChange={e => this.setState({ fftSize: Number.parseInt(e.target.value) })}
           />
         </label>

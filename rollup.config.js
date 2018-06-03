@@ -17,19 +17,14 @@ function getConfig(min) {
           useBuiltIns: "entry",
           loose: true,
           targets: {
-            browsers: [
-              "last 2 Chrome versions",
-              "last 2 Firefox versions",
-              "last 1 Safari versions",
-              "last 1 Edge versions"
-            ]
-          }
-        }
+            browsers: ["last 2 Chrome versions", "last 2 Firefox versions"],
+          },
+        },
       ],
-      "@babel/react"
+      "@babel/react",
     ],
     plugins: [],
-    exclude: ["node_modules/**"]
+    exclude: ["node_modules/**"],
   };
   if (min) babelConfig.presets.push("minify");
 
@@ -38,11 +33,11 @@ function getConfig(min) {
     output: {
       file: min ? pkg.main : pkg.module,
       format: !min ? "es" : "cjs",
-      sourcemap: true
+      sourcemap: true,
     },
     external: ["react", "react-dom"],
     watch: {
-      include: "src/**/*"
+      include: "src/**/*",
     },
     plugins: [
       // Compile TypeScript files
@@ -52,7 +47,7 @@ function getConfig(min) {
         module: "ESNext",
         clean: true,
         baseUrl: "./src/",
-        rollupCommonJSResolveHack: true
+        rollupCommonJSResolveHack: true,
       }),
       babel(babelConfig),
       // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
@@ -61,8 +56,8 @@ function getConfig(min) {
       // which external modules to include in the bundle
       // https://github.com/rollup/rollup-plugin-node-resolve#usage
       resolve(),
-      sourceMaps()
-    ]
+      sourceMaps(),
+    ],
   };
 }
 

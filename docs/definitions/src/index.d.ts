@@ -1,4 +1,3 @@
-/// <reference types="react" />
 import React from "react";
 export interface SoundVisualizerProps {
     soundStream: MediaStream;
@@ -28,12 +27,12 @@ declare class SoundVisualizer extends React.Component<SoundVisualizerProps, Soun
     static getDerivedStateFromProps(nextProps: SoundVisualizerProps): SoundVisualizerState;
     componentDidUpdate(_prevProps: SoundVisualizerProps, _prevState: SoundVisualizerState): void;
     componentWillUnmount(): void;
-    private static distributeAngles(me, total);
-    private static getRadiusFromProps(props);
-    private static getMaxBarSize(props);
-    private processSound(stream);
+    private static distributeAngles;
+    private static getRadiusFromProps;
+    private static getMaxBarSize;
+    private processSound;
     draw(): void;
-    private drawLogo(canvasCtx, percentage);
+    private drawLogo;
     render(): JSX.Element;
 }
 export default SoundVisualizer;
