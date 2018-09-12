@@ -100,21 +100,7 @@ module.exports = function(env) {
     module: {
       rules: [
         {
-          test: /\.(ts|tsx)$/,
-          use: [
-            {
-              loader: "babel-loader",
-              options: {
-                cacheDirectory: !isProd,
-              },
-            },
-            "ts-loader",
-          ],
-          include: /public/,
-          exclude: /node_modules/,
-        },
-        {
-          test: /\.(js|jsx)$/,
+          test: /\.(ts|tsx|js|jsx)$/,
           use: {
             loader: "babel-loader",
             options: {

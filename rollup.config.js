@@ -6,33 +6,11 @@ import babel from "rollup-plugin-babel";
 
 import pkg from "./package.json";
 
-function getConfig(min) {
-  const babelConfig = {
-    babelrc: false,
-    presets: [
-      [
-        "@babel/env",
-        {
-          modules: false,
-          useBuiltIns: "entry",
-          loose: true,
-          targets: {
-            browsers: ["last 2 Chrome versions", "last 2 Firefox versions"],
-          },
-        },
-      ],
-      "@babel/react",
-    ],
-    plugins: [],
-    exclude: ["node_modules/**"],
-  };
-  if (min) babelConfig.presets.push("minify");
-
-  return {
+export default {
     input: "src/index.tsx",
     output: {
-      file: min ? pkg.main : pkg.module,
-      format: !min ? "es" : "cjs",
+      file: pkg.module,
+      format: "es",
       sourcemap: true,
     },
     external: ["react", "react-dom"],
@@ -49,7 +27,22 @@ function getConfig(min) {
         baseUrl: "./src/",
         rollupCommonJSResolveHack: true,
       }),
-      babel(babelConfig),
+      babel({
+        babelrc: false,
+        presets: [
+          [
+            "@babel/env",
+            {
+              modules: false,
+              useBuiltIns: "entry",
+              loose: true,
+            },
+          ],
+          "@babel/react",
+        ],
+        plugins: [],
+        exclude: ["node_modules/**"],
+      }),
       // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
       commonjs(),
       // Allow node_modules resolution, so you can use 'external' to control
@@ -58,7 +51,5 @@ function getConfig(min) {
       resolve(),
       sourceMaps(),
     ],
-  };
 }
 
-export default [getConfig(true), getConfig(false)];
